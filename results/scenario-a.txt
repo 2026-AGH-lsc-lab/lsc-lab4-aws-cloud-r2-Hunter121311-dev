@@ -1,0 +1,112 @@
+bash loadtest/scenario-a.sh "$LAMBDA_ZIP_URL" "$LAMBDA_CONTAINER_URL"
+=== Scenario A: Lambda Cold Start Characterization ===
+Ensure Lambda has been idle for 20+ minutes before running.
+
+--- Lambda Zip (30 sequential requests, 1/sec) ---
+Summary:
+  Success rate: 100.00%
+  Total:        30.1387 sec
+  Slowest:      1.2782 sec
+  Fastest:      0.0863 sec
+  Average:      0.1452 sec
+  Requests/sec: 0.9954
+
+  Total data:   11.13 KiB
+  Size/request: 379 B
+  Size/sec:     378 B
+
+Response time histogram:
+  0.086 sec [1]  |■
+  0.205 sec [28] |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  0.325 sec [0]  |
+  0.444 sec [0]  |
+  0.563 sec [0]  |
+  0.682 sec [0]  |
+  0.801 sec [0]  |
+  0.921 sec [0]  |
+  1.040 sec [0]  |
+  1.159 sec [0]  |
+  1.278 sec [1]  |■
+
+Response time distribution:
+  10.00% in 0.0917 sec
+  25.00% in 0.0979 sec
+  50.00% in 0.1039 sec
+  75.00% in 0.1110 sec
+  90.00% in 0.1332 sec
+  95.00% in 0.1515 sec
+  99.00% in 1.2782 sec
+  99.90% in 1.2782 sec
+  99.99% in 1.2782 sec
+
+
+Details (average, fastest, slowest):
+  DNS+dialup:   0.0601 sec, 0.0601 sec, 0.0601 sec
+  DNS-lookup:   0.0001 sec, 0.0001 sec, 0.0001 sec
+
+Status code distribution:
+  [200] 30 responses
+
+Waiting 20 minutes before container variant (for cold start reset)...
+Press Ctrl+C to skip the wait if running variants separately.
+Sleeping 1200s (20 min)...
+
+--- Lambda Container (30 sequential requests, 1/sec) ---
+Summary:
+  Success rate: 100.00%
+  Total:        30.1326 sec
+  Slowest:      1.0146 sec
+  Fastest:      0.0764 sec
+  Average:      0.1279 sec
+  Requests/sec: 0.9956
+
+  Total data:   11.13 KiB
+  Size/request: 379 B
+  Size/sec:     378 B
+
+Response time histogram:
+  0.076 sec [1]  |■
+  0.170 sec [28] |■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  0.264 sec [0]  |
+  0.358 sec [0]  |
+  0.452 sec [0]  |
+  0.546 sec [0]  |
+  0.639 sec [0]  |
+  0.733 sec [0]  |
+  0.827 sec [0]  |
+  0.921 sec [0]  |
+  1.015 sec [1]  |■
+
+Response time distribution:
+  10.00% in 0.0843 sec
+  25.00% in 0.0876 sec
+  50.00% in 0.0970 sec
+  75.00% in 0.1039 sec
+  90.00% in 0.1236 sec
+  95.00% in 0.1536 sec
+  99.00% in 1.0146 sec
+  99.90% in 1.0146 sec
+  99.99% in 1.0146 sec
+
+
+Details (average, fastest, slowest):
+  DNS+dialup:   0.0514 sec, 0.0514 sec, 0.0514 sec
+  DNS-lookup:   0.0001 sec, 0.0001 sec, 0.0001 sec
+
+Status code distribution:
+  [200] 30 responses
+
+=== Scenario A complete. Results in /home/ec2-user/lsc-lab4-aws-cloud-r2-Hunter121311-dev/loadtest/../results ===
+
+Next: check CloudWatch for Init Duration (cold start) entries:
+  aws logs filter-log-events --log-group-name /aws/lambda/lsc-knn-zip --filter-pattern 'Init Duration' --start-time $(date -d '30 minutes ago' +%s000) --query 'events[*].message' --output text
+  aws logs filter-log-events --log-group-name /aws/lambda/lsc-knn-container --filter-pattern 'Init Duration' --start-time $(date -d '30 minutes ago' +%s000) --query 'events[*].message' --output text
+[ec2-user@ip-172-31-71-88 lsc-lab4-aws-cloud-r2-Hunter121311-dev]$ aws logs filter-log-events --log-group-name /aws/lambda/lsc-knn-zip --filter-pattern 'Init Duration' --start-time $(date -d '30 minutes ago' +%s000) --query 'events[*].message' --output text
+REPORT RequestId: f37b19ce-49fa-44c3-8165-4845efb1792a  Duration: 81.49 ms      Billed Duration: 716 ms Memory Size: 512 MB Max Memory Used: 144 MB Init Duration: 634.31 ms        
+XRAY TraceId: 1-69dbb32d-6607009166dfd19710367542       SegmentId: 249d1fe3e89fa163     Sampled: true   
+
+[ec2-user@ip-172-31-71-88 lsc-lab4-aws-cloud-r2-Hunter121311-dev]$ ls
+README-bak.md  README.md  deploy  docs  loadtest  results  workload
+[ec2-user@ip-172-31-71-88 lsc-lab4-aws-cloud-r2-Hunter121311-dev]$ aws logs filter-log-events --log-group-name /aws/lambda/lsc-knn-container --filter-pattern 'Init Duration' --start-time $(date -d '30 minutes ago' +%s000) --query 'events[*].message' --output text
+REPORT RequestId: 2dda800d-3369-40a8-89e5-df2cfd6006f3  Duration: 77.56 ms      Billed Duration: 683 ms Memory Size: 512 MB Max Memory Used: 142 MB Init Duration: 604.47 ms        
+XRAY TraceId: 1-69dbb7fb-7dfe3c3034b06eed217a6194       SegmentId: 80451eb9a4f56f72     Sampled: true
