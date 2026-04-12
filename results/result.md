@@ -173,13 +173,6 @@ anything during execution of scripts) after each scenario I:
 at end I tried to export to my local machine logs, but unsuccessfully - account got deactivated
 surprisingly it happened after execution of everything during "waiting"
 
-
-### Required:
-
-- 200-request burst tests
-- Lambda cold-start counts from CloudWatch
-- Latency distributions for all environments
-
 ### Expected Outcome
 
 - Lambda shows bimodal distribution:
